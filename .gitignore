@@ -1,0 +1,7 @@
+/bin/
+/dist/
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform-provider-nemau

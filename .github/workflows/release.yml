@@ -10,10 +10,12 @@ permissions:
 # The Terraform Registry reads the GitHub release: one zip per platform, the
 # SHA256SUMS file, its detached GPG signature and the manifest. The public half
 # of the signing key is registered with the Registry; the private half lives in
-# the GPG_PRIVATE_KEY and PASSPHRASE secrets of this repository.
+# the GPG_PRIVATE_KEY and PASSPHRASE secrets of the `release` environment,
+# which only runs started by a `v*` tag can use.
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

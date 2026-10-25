@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      - run: go test -race ./...
+
+  # docs/ is generated from the schema, templates/ and examples/. A change to
+  # any of them committed without `go generate ./...` shows here. tfplugindocs
+  # downloads Terraform into a temporary directory to read the schema.
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+      - run: go generate ./...
+      - run: git diff --exit-code -- docs
+      - run: test -z "$(git status --porcelain -- docs)" || { git status --porcelain -- docs; exit 1; }
+
+  # The examples are documentation people copy: a badly formatted or invalid
+  # file there shows at once.
+  terraform-validate:
+    runs-on: ubuntu-latest
+    continue-on-error: true # until the provider is published to the registry
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: "~1.9.0"
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive examples
+      - run: |
+          for dir in examples/*/; do
+            (cd "$dir" && terraform init -backend=false && terraform validate)
+          done

@@ -7,6 +7,8 @@ build time.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-19
+
 ### Breaking changes
 
 - `nemau_kubernetes_cluster` requires `network_id` and `subnet_id`: the UUIDs

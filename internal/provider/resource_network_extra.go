@@ -329,10 +329,10 @@ func (r *floatingIPResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				MarkdownDescription: "Free-form description. Changes in place.",
 			},
 			"external_network_id": schema.StringAttribute{
-				Optional: true,
+				Optional: true, Computed: true,
 				MarkdownDescription: "Id of the external network to allocate from. When omitted, the " +
-					"region's external network is used. Changing it replaces the floating IP.",
-				PlanModifiers: []planmodifier.String{stringplanmodifier.RequiresReplace()},
+					"region's external network is used and its id is recorded here. Changing it replaces the floating IP.",
+				PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown(), stringplanmodifier.RequiresReplace()},
 			},
 			"ip_version": schema.Int64Attribute{
 				Optional: true, Computed: true,

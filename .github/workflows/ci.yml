@@ -48,5 +48,14 @@ jobs:
       - run: terraform fmt -check -recursive examples
       - run: |
           for dir in examples/*/; do
+            # An example that reads a certificate with file() needs the two
+            # files next to it. They are throwaway and never committed: only the
+            # configuration is validated, nothing is applied.
+            if grep -q 'fullchain.pem' "$dir"main.tf 2>/dev/null; then
+              openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes \
+                -subj "/CN=example.invalid" -days 1 \
+                -keyout "$dir/privkey.pem" -out "$dir/fullchain.pem"
+            fi
             (cd "$dir" && terraform init -backend=false && terraform validate)
+            rm -f "$dir/privkey.pem" "$dir/fullchain.pem"
           done
